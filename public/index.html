@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoundCloudSaver — Download Musik SoundCloud</title>
+<meta name="description" content="Download musik dan track SoundCloud dengan mudah.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><path fill='%23ff5500' d='M0 256c0 24.3 19.7 44 44 44h12V212H44c-24.3 0-44 19.7-44 44zm87.5 44h8.5V212h-8.5c-4.7 0-8.5 3.8-8.5 8.5v71c0 4.7 3.8 8.5 8.5 8.5zm42 16h8.5V196h-8.5c-4.7 0-8.5 3.8-8.5 8.5v103c0 4.7 3.8 8.5 8.5 8.5zm42-8h8.5V204h-8.5c-4.7 0-8.5 3.8-8.5 8.5v87c0 4.7 3.8 8.5 8.5 8.5zm42 24h8.5V180h-8.5c-4.7 0-8.5 3.8-8.5 8.5v127c0 4.7 3.8 8.5 8.5 8.5zm42-8h8.5V196h-8.5c-4.7 0-8.5 3.8-8.5 8.5v87c0 4.7 3.8 8.5 8.5 8.5zm42 0h8.5V196h-8.5c-4.7 0-8.5 3.8-8.5 8.5v87c0 4.7 3.8 8.5 8.5 8.5zm42-8h8.5V204h-8.5c-4.7 0-8.5 3.8-8.5 8.5v87c0 4.7 3.8 8.5 8.5 8.5zm90.5-148C448.7 168 412.6 144 371 144c-9.8 0-19.2 1.4-28.1 4-12.5-41.3-50.9-71-96.9-71-55.8 0-101 45.2-101 101 0 2.1.1 4.1.2 6.1C122.5 190.1 108 207.3 108 228c0 22 17.9 40 40 40h300c33.1 0 60-26.9 60-60s-26.9-60-60-60z'/></svg>" type="image/svg+xml">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+:root {
+    --bg: #0a0a0a;
+    --bg2: #111111;
+    --bg3: #181818;
+    --card: #1c1c1c;
+    --card-hover: #222222;
+    --border: #2a2a2a;
+    --border-hover: #383838;
+    --sc: #ff5500;
+    --sc2: #ff7700;
+    --grad: linear-gradient(135deg, #ff5500, #ff8800);
+    --text: #efefef;
+    --text2: #888888;
+    --text3: #4a4a4a;
+    --radius: 14px;
+    --radius-lg: 20px;
+    --header-h: 58px;
+}
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+}
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; border: none; background: none; font-family: inherit; color: inherit; }
+img { display: block; max-width: 100%; }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+
+.site-header {
+    position: fixed; top: 0; left: 0; right: 0;
+    z-index: 1000; height: var(--header-h);
+    background: rgba(10,10,10,0.95);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+}
+.header-inner {
+    max-width: 1100px; margin: 0 auto;
+    padding: 0 20px; height: 100%;
+    display: flex; align-items: center; justify-content: space-between;
+}
+.logo {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 17px; font-weight: 800; letter-spacing: -0.3px; cursor: pointer;
+    user-select: none;
+}
+.logo-icon {
+    width: 32px; height: 32px; border-radius: 9px;
+    background: var(--grad);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: white; flex-shrink: 0;
+}
+.logo span b { background: var(--grad); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+.dev-link {
+    display: flex; align-items: center; justify-content: center;
+    width: 34px; height: 34px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 9px; color: var(--text3); font-size: 14px;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.dev-link:hover { color: var(--sc); border-color: rgba(255,85,0,0.35); background: rgba(255,85,0,0.07); }
+
+.page { display: none; padding-top: var(--header-h); min-height: 100vh; }
+.page.active { display: block; }
+
+.global-loader {
+    position: fixed; inset: 0;
+    background: rgba(10,10,10,0.88);
+    backdrop-filter: blur(6px);
+    z-index: 9000; display: none;
+    align-items: center; justify-content: center; flex-direction: column; gap: 14px;
+}
+.global-loader.show { display: flex; }
+.loader-ring {
+    width: 42px; height: 42px;
+    border: 2.5px solid var(--border);
+    border-top-color: var(--sc);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+}
+.loader-text { font-size: 13px; color: var(--text2); font-weight: 500; letter-spacing: 0.2px; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.hero {
+    display: flex; align-items: center; justify-content: center;
+    padding: 48px 20px 52px;
+}
+.hero-inner {
+    max-width: 620px; width: 100%;
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center; gap: 22px;
+}
+.hero-badge {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 5px 14px;
+    background: rgba(255,85,0,0.08); border: 1px solid rgba(255,85,0,0.2);
+    border-radius: 100px; font-size: 11px; font-weight: 700;
+    color: var(--sc2); letter-spacing: 0.8px; text-transform: uppercase;
+}
+.hero-title {
+    font-size: clamp(26px, 6vw, 46px);
+    font-weight: 900; line-height: 1.1; letter-spacing: -1.5px;
+}
+.hero-title .grad {
+    background: var(--grad);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.hero-sub { font-size: 14px; color: var(--text2); line-height: 1.8; max-width: 460px; }
+
+.mode-tabs {
+    display: flex; gap: 4px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 100px; padding: 4px;
+}
+.mode-tab {
+    display: flex; align-items: center; gap: 7px;
+    padding: 8px 22px; border-radius: 100px;
+    font-size: 13px; font-weight: 700; color: var(--text3);
+    transition: color 0.2s;
+}
+.mode-tab.active { background: var(--grad); color: white; }
+.mode-tab:not(.active):hover { color: var(--text2); }
+
+.input-panel { width: 100%; }
+.search-box {
+    width: 100%; display: flex; gap: 8px;
+    background: var(--card); border: 1.5px solid var(--border);
+    border-radius: var(--radius-lg); padding: 6px 6px 6px 16px;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.search-box:focus-within {
+    border-color: var(--sc);
+    box-shadow: 0 0 0 3px rgba(255,85,0,0.08);
+}
+.search-input-wrap { flex: 1; display: flex; align-items: center; gap: 10px; min-width: 0; }
+.search-icon { color: var(--text3); font-size: 13px; flex-shrink: 0; }
+.search-box input {
+    flex: 1; background: none; border: none; outline: none;
+    font-size: 14px; font-weight: 500; color: var(--text); min-width: 0;
+    font-family: inherit;
+}
+.search-box input::placeholder { color: var(--text3); font-weight: 400; }
+.search-btn {
+    display: flex; align-items: center; gap: 7px;
+    padding: 10px 20px;
+    background: var(--grad);
+    color: white; border-radius: 13px; font-size: 13px; font-weight: 700;
+    flex-shrink: 0; transition: opacity 0.2s, transform 0.15s, box-shadow 0.15s;
+    white-space: nowrap;
+}
+.search-btn:hover { opacity: 0.88; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(255,85,0,0.25); }
+.search-btn:active { transform: translateY(0); opacity: 1; }
+
+.feature-chips { display: flex; flex-wrap: wrap; gap: 7px; justify-content: center; }
+.chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 11.5px; color: var(--text2); font-weight: 500;
+}
+.chip i { font-size: 10px; color: var(--sc); }
+
+.features { padding: 0 20px 80px; }
+.features-inner {
+    max-width: 860px; margin: 0 auto;
+    display: grid; grid-template-columns: repeat(3,1fr); gap: 10px;
+}
+.feat-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 22px 18px;
+    display: flex; flex-direction: column; gap: 10px;
+    transition: border-color 0.2s, transform 0.2s;
+}
+.feat-card:hover { border-color: var(--border-hover); transform: translateY(-2px); }
+.feat-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,85,0,0.09);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--sc);
+}
+.feat-card h3 { font-size: 14px; font-weight: 700; }
+.feat-card p { font-size: 13px; color: var(--text2); line-height: 1.65; }
+
+.results-wrap {
+    max-width: 680px; margin: 0 auto;
+    padding: 24px 16px 60px;
+    display: flex; flex-direction: column; gap: 8px;
+}
+.results-title {
+    font-size: 11.5px; color: var(--text3); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    padding: 0 2px 4px;
+}
+
+.track-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 12px 14px;
+    display: flex; align-items: center; gap: 13px;
+    cursor: pointer;
+    transition: background 0.18s, border-color 0.18s;
+    animation: fadeUp 0.22s ease both;
+    overflow: hidden;
+}
+.track-card:hover { background: var(--card-hover); border-color: var(--border-hover); }
+.track-artwork-wrap {
+    width: 50px; height: 50px; border-radius: 8px;
+    flex-shrink: 0; overflow: hidden;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+}
+.track-artwork-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.track-artwork-placeholder { color: var(--text3); font-size: 18px; }
+.track-info { flex: 1; min-width: 0; }
+.track-title {
+    font-size: 13.5px; font-weight: 700;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.track-user { font-size: 12px; color: var(--text2); margin-bottom: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.track-meta { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.track-meta span { font-size: 11px; color: var(--text3); display: flex; align-items: center; gap: 4px; }
+.track-meta i { font-size: 9px; }
+.track-arrow { color: var(--text3); font-size: 11px; flex-shrink: 0; }
+
+.empty-state { text-align: center; padding: 52px 20px; color: var(--text3); }
+.empty-state i { font-size: 36px; margin-bottom: 14px; display: block; color: var(--border); }
+.empty-state p { font-size: 14px; line-height: 1.7; }
+
+.dl-result-wrap {
+    max-width: 640px; margin: 0 auto;
+    padding: 24px 16px 60px;
+    display: flex; flex-direction: column; gap: 16px;
+}
+.dl-result-header {
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 10px;
+}
+.dl-result-title {
+    font-size: 11.5px; color: var(--text3); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+}
+.dl-back-btn {
+    display: inline-flex; align-items: center; gap: 7px;
+    padding: 7px 14px; background: var(--bg3); color: var(--text2);
+    border: 1px solid var(--border); border-radius: 100px;
+    font-size: 12px; font-weight: 600;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+}
+.dl-back-btn:hover { background: rgba(255,85,0,0.07); color: var(--sc); border-color: rgba(255,85,0,0.25); }
+
+.track-detail-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 20px 18px;
+    display: flex; flex-direction: column; align-items: center;
+    gap: 14px; overflow: hidden; text-align: center;
+}
+.detail-artwork-wrap {
+    width: 100px; height: 100px; border-radius: 14px;
+    flex-shrink: 0; overflow: hidden;
+    background: var(--bg3); border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+}
+.detail-artwork-wrap img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.detail-artwork-placeholder { color: var(--text3); font-size: 36px; }
+.detail-info { width: 100%; display: flex; flex-direction: column; gap: 6px; }
+.detail-title {
+    font-size: 15px; font-weight: 800; line-height: 1.4;
+    word-break: break-word; white-space: normal;
+    overflow: hidden; display: -webkit-box;
+    -webkit-line-clamp: 3; -webkit-box-orient: vertical;
+}
+.detail-user { font-size: 13px; color: var(--sc2); font-weight: 600; }
+.detail-divider {
+    width: 40px; height: 2px;
+    background: var(--grad); border-radius: 2px;
+    margin: 0 auto;
+}
+.detail-meta {
+    display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+}
+.detail-meta-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 11px;
+    background: var(--bg3); border: 1px solid var(--border);
+    border-radius: 100px; font-size: 11.5px; color: var(--text2);
+}
+.detail-meta-chip i { font-size: 9px; color: var(--sc); }
+
+.dl-options { display: flex; flex-direction: column; gap: 10px; }
+.dl-options-title {
+    font-size: 11.5px; color: var(--text3); font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;
+}
+.dl-option-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 14px 14px 12px;
+    display: flex; flex-direction: column; gap: 12px;
+    transition: background 0.18s, border-color 0.18s;
+    animation: fadeUp 0.22s ease both;
+}
+.dl-option-card:hover { background: var(--card-hover); border-color: var(--border-hover); }
+.dl-option-top { display: flex; align-items: center; gap: 12px; }
+.dl-format-icon {
+    width: 38px; height: 38px; border-radius: 10px;
+    background: rgba(255,85,0,0.09);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px; color: var(--sc); flex-shrink: 0;
+}
+.dl-option-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.dl-option-label { font-size: 14px; font-weight: 700; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+.dl-option-sub { font-size: 12px; color: var(--text2); }
+.dl-option-badge {
+    font-size: 10px; font-weight: 700; padding: 2px 7px;
+    border-radius: 100px; background: rgba(255,85,0,0.1);
+    color: var(--sc); border: 1px solid rgba(255,85,0,0.18);
+    flex-shrink: 0;
+}
+.dl-btn {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    width: 100%; padding: 12px;
+    background: var(--grad);
+    color: white; border-radius: 11px; font-size: 14px; font-weight: 700;
+    transition: opacity 0.2s, box-shadow 0.2s;
+}
+.dl-btn:hover { opacity: 0.86; box-shadow: 0 4px 16px rgba(255,85,0,0.3); }
+.dl-btn:active { opacity: 1; transform: scale(0.98); }
+
+.back-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 8px 16px; background: var(--bg3); color: var(--text2);
+    border: 1px solid var(--border); border-radius: 100px;
+    font-size: 13px; font-weight: 600;
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+    margin-bottom: 20px;
+}
+.back-btn:hover { background: rgba(255,85,0,0.07); color: var(--sc); border-color: rgba(255,85,0,0.25); }
+
+.site-footer { background: var(--bg2); border-top: 1px solid var(--border); padding: 24px 20px; }
+.footer-inner { max-width: 1100px; margin: 0 auto; display: flex; flex-direction: column; align-items: center; gap: 7px; text-align: center; }
+.footer-logo { display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 800; }
+.footer-copy { font-size: 12px; color: var(--text3); }
+
+@media (max-width: 768px) {
+    :root { --header-h: 52px; }
+    .features-inner { grid-template-columns: 1fr; gap: 8px; }
+    .hero { padding: 32px 16px 40px; }
+    .mode-tabs { width: 100%; }
+    .mode-tab { flex: 1; justify-content: center; padding: 8px 10px; font-size: 12px; }
+    .detail-artwork-wrap { width: 90px; height: 90px; }
+}
+@media (max-width: 480px) {
+    .search-btn span { display: none; }
+    .search-btn { padding: 10px 14px; }
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+    <div class="header-inner">
+        <div class="logo" id="logo-home">
+            <div class="logo-icon"><i class="fas fa-cloud"></i></div>
+            <span>SoundCloud<b>Saver</b></span>
+        </div>
+        <a class="dev-link" href="https://rscoders.biz.id/" target="_blank" title="Developer">
+            <i class="fas fa-code"></i>
+        </a>
+    </div>
+</header>
+
+<div id="page-home" class="page active">
+    <div class="hero">
+        <div class="hero-inner">
+            <div class="hero-badge"><i class="fas fa-download"></i> SoundCloud Downloader</div>
+            <h1 class="hero-title">
+                Download Musik<br>
+                <span class="grad">SoundCloud Gratis</span>
+            </h1>
+            <p class="hero-sub">Cari track lewat kata kunci atau tempel URL SoundCloud langsung untuk diunduh.</p>
+
+            <div class="mode-tabs">
+                <button class="mode-tab active" id="mode-search" onclick="switchMode('search')">
+                    <i class="fas fa-magnifying-glass"></i> Cari Track
+                </button>
+                <button class="mode-tab" id="mode-url" onclick="switchMode('url')">
+                    <i class="fas fa-link"></i> Download URL
+                </button>
+            </div>
+
+            <div class="input-panel" id="panel-search">
+                <div class="search-box">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-music search-icon"></i>
+                        <input type="text" id="search-input" placeholder="Cari judul lagu, artis..." autocomplete="off" spellcheck="false">
+                    </div>
+                    <button class="search-btn" id="search-btn">
+                        <i class="fas fa-magnifying-glass"></i><span>Cari</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-panel" id="panel-url" style="display:none">
+                <div class="search-box">
+                    <div class="search-input-wrap">
+                        <i class="fas fa-link search-icon"></i>
+                        <input type="text" id="url-input" placeholder="Tempel URL SoundCloud..." autocomplete="off" spellcheck="false">
+                    </div>
+                    <button class="search-btn" id="url-btn">
+                        <i class="fas fa-download"></i><span>Unduh</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="feature-chips">
+                <span class="chip"><i class="fas fa-music"></i> Track Only</span>
+                <span class="chip"><i class="fas fa-headphones"></i> Audio HQ</span>
+                <span class="chip"><i class="fas fa-bolt"></i> Cepat</span>
+                <span class="chip"><i class="fas fa-link"></i> Via URL</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="features">
+        <div class="features-inner">
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fas fa-magnifying-glass"></i></div>
+                <h3>Cari Track</h3>
+                <p>Cari musik di SoundCloud berdasarkan judul, artis, atau kata kunci lainnya.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fas fa-headphones-simple"></i></div>
+                <h3>Kualitas Terbaik</h3>
+                <p>Download audio dalam format MP3 progressive maupun HLS dengan kualitas terbaik.</p>
+            </div>
+            <div class="feat-card">
+                <div class="feat-icon"><i class="fas fa-link"></i></div>
+                <h3>Download by URL</h3>
+                <p>Tempel URL track SoundCloud langsung untuk mendapatkan link unduhan.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="footer-inner">
+            <div class="footer-logo">
+                <div class="logo-icon" style="width:26px;height:26px;font-size:13px;border-radius:7px"><i class="fas fa-cloud"></i></div>
+                <span>SoundCloud<b style="background:var(--grad);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text">Saver</b></span>
+            </div>
+            <p class="footer-copy">&copy; <span id="year"></span> SoundCloudSaver &mdash; All Rights Reserved</p>
+        </div>
+    </footer>
+</div>
+
+<div id="page-results" class="page">
+    <div class="results-wrap">
+        <p class="results-title" id="results-title">Hasil Pencarian</p>
+        <div id="results-list"></div>
+        <button class="back-btn" id="results-home-btn" style="align-self:center;margin-top:8px">
+            <i class="fas fa-house"></i> Home
+        </button>
+    </div>
+</div>
+
+<div id="page-dlresult" class="page">
+    <div class="dl-result-wrap">
+        <div class="dl-result-header">
+            <p class="dl-result-title">Hasil Download</p>
+            <button class="dl-back-btn" id="dl-back-btn">
+                <i class="fas fa-arrow-left"></i> Kembali
+            </button>
+        </div>
+        <div id="track-detail"></div>
+        <div class="dl-options">
+            <p class="dl-options-title"><i class="fas fa-download"></i> Pilih Format</p>
+            <div id="dl-options-list"></div>
+        </div>
+    </div>
+</div>
+
+<div class="global-loader" id="global-loader">
+    <div class="loader-ring"></div>
+    <p class="loader-text" id="loader-text">Memuat...</p>
+</div>
+
+<script>
+const API = '/api';
+const $ = id => document.getElementById(id);
+
+const showPage = id => {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    $('page-' + id).classList.add('active');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+};
+
+const showLoader = (msg = 'Memuat...') => {
+    $('loader-text').textContent = msg;
+    $('global-loader').classList.add('show');
+};
+
+const hideLoader = () => $('global-loader').classList.remove('show');
+
+const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+const fmtDuration = ms => {
+    if (!ms) return '0:00';
+    const s = Math.floor(ms / 1000);
+    const m = Math.floor(s / 60);
+    const sec = s % 60;
+    return `${m}:${sec.toString().padStart(2, '0')}`;
+};
+
+const fmtCount = n => {
+    if (!n) return null;
+    if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+    if (n >= 1000) return (n / 1000).toFixed(1) + 'K';
+    return String(n);
+};
+
+const switchMode = mode => {
+    $('mode-search').classList.toggle('active', mode === 'search');
+    $('mode-url').classList.toggle('active', mode === 'url');
+    $('panel-search').style.display = mode === 'search' ? '' : 'none';
+    $('panel-url').style.display = mode === 'url' ? '' : 'none';
+};
+
+const makeArtworkHtml = (artworkUrl, trackClass, placeholderClass, placeholderIcon, size) => {
+    const wrap = document.createElement('div');
+    wrap.className = trackClass;
+    if (artworkUrl) {
+        const img = document.createElement('img');
+        img.src = artworkUrl.replace('-large', size || '-t200x200');
+        img.alt = '';
+        img.onerror = function() {
+            this.parentNode.innerHTML = `<i class="fas fa-${placeholderIcon} ${placeholderClass}"></i>`;
+        };
+        wrap.appendChild(img);
+    } else {
+        wrap.innerHTML = `<i class="fas fa-${placeholderIcon} ${placeholderClass}"></i>`;
+    }
+    return wrap;
+};
+
+let _searchResults = [];
+
+const doSearch = async q => {
+    if (!q.trim()) return;
+    showLoader('Mencari track...');
+    try {
+        const res = await fetch(`${API}/search?q=${encodeURIComponent(q.trim())}`);
+        const json = await res.json();
+        hideLoader();
+        renderResults(json.success ? json.data : [], q.trim());
+        showPage('results');
+    } catch (e) {
+        hideLoader();
+        alert('Gagal mencari. Coba lagi.');
+    }
+};
+
+const doDownloadUrl = async url => {
+    const val = url.trim();
+    if (!val) return;
+    if (!/soundcloud\.com\/.+/.test(val)) {
+        alert('URL tidak valid! Gunakan link track SoundCloud.');
+        return;
+    }
+    showLoader('Mengambil track...');
+    try {
+        const res = await fetch(`${API}/download?url=${encodeURIComponent(val)}`);
+        const json = await res.json();
+        hideLoader();
+        if (!json.success) { alert(json.message || 'Gagal mengambil track.'); return; }
+        renderDlResult(json.data);
+        showPage('dlresult');
+    } catch (e) {
+        hideLoader();
+        alert('Gagal mengambil track. Coba lagi.');
+    }
+};
+
+const renderResults = (tracks, q) => {
+    _searchResults = tracks;
+    const list = $('results-list');
+    $('results-title').textContent = `${tracks.length} hasil untuk "${q}"`;
+
+    if (!tracks.length) {
+        list.innerHTML = '';
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `<i class="fas fa-music-slash"></i><p>Tidak ada track ditemukan untuk "<b>${esc(q)}</b>"</p>`;
+        list.appendChild(empty);
+        return;
+    }
+
+    list.innerHTML = '';
+    tracks.forEach((t, i) => {
+        const card = document.createElement('div');
+        card.className = 'track-card';
+        card.style.animationDelay = `${i * 22}ms`;
+        card.dataset.idx = i;
+
+        const artworkWrap = makeArtworkHtml(t.artwork_url, 'track-artwork-wrap', 'track-artwork-placeholder', 'music', '-t200x200');
+
+        const plays = fmtCount(t.playback_count);
+        const likes = fmtCount(t.likes_count);
+
+        const info = document.createElement('div');
+        info.className = 'track-info';
+        info.innerHTML = `
+            <div class="track-title">${esc(t.title)}</div>
+            <div class="track-user">${esc(t.user || '')}</div>
+            <div class="track-meta">
+                <span><i class="fas fa-clock"></i> ${fmtDuration(t.duration)}</span>
+                ${plays ? `<span><i class="fas fa-play"></i> ${plays}</span>` : ''}
+                ${likes ? `<span><i class="fas fa-heart"></i> ${likes}</span>` : ''}
+                ${t.genre ? `<span><i class="fas fa-tag"></i> ${esc(t.genre)}</span>` : ''}
+            </div>`;
+
+        const arrow = document.createElement('i');
+        arrow.className = 'fas fa-chevron-right track-arrow';
+
+        card.appendChild(artworkWrap);
+        card.appendChild(info);
+        card.appendChild(arrow);
+        list.appendChild(card);
+    });
+
+    list.onclick = e => {
+        const card = e.target.closest('.track-card');
+        if (!card) return;
+        const idx = parseInt(card.dataset.idx);
+        if (!isNaN(idx) && _searchResults[idx]) loadDownload(_searchResults[idx].url);
+    };
+};
+
+const loadDownload = async url => {
+    showLoader('Mengambil link download...');
+    try {
+        const res = await fetch(`${API}/download?url=${encodeURIComponent(url)}`);
+        const json = await res.json();
+        hideLoader();
+        if (!json.success) { alert(json.message || 'Gagal mengambil link.'); return; }
+        renderDlResult(json.data);
+        showPage('dlresult');
+    } catch (e) {
+        hideLoader();
+        alert('Gagal mengambil link. Coba lagi.');
+    }
+};
+
+const renderDlResult = data => {
+    const detail = $('track-detail');
+    detail.innerHTML = '';
+
+    const card = document.createElement('div');
+    card.className = 'track-detail-card';
+
+    const artworkWrap = makeArtworkHtml(data.artwork_url, 'detail-artwork-wrap', 'detail-artwork-placeholder', 'music', '-t300x300');
+
+    const plays = fmtCount(data.playback_count);
+    const likes = fmtCount(data.likes_count);
+
+    const metaChips = [];
+    metaChips.push(`<span class="detail-meta-chip"><i class="fas fa-clock"></i> ${fmtDuration(data.duration)}</span>`);
+    if (plays) metaChips.push(`<span class="detail-meta-chip"><i class="fas fa-play"></i> ${plays}</span>`);
+    if (likes) metaChips.push(`<span class="detail-meta-chip"><i class="fas fa-heart"></i> ${likes}</span>`);
+    if (data.genre) metaChips.push(`<span class="detail-meta-chip"><i class="fas fa-tag"></i> ${esc(data.genre)}</span>`);
+
+    const info = document.createElement('div');
+    info.className = 'detail-info';
+    info.innerHTML = `
+        <div class="detail-title">${esc(data.title)}</div>
+        <div class="detail-user">${esc(data.user || '')}</div>
+        <div class="detail-divider"></div>
+        <div class="detail-meta">${metaChips.join('')}</div>`;
+
+    card.appendChild(artworkWrap);
+    card.appendChild(info);
+    detail.appendChild(card);
+
+    const options = [];
+    const sanitize = s => String(s || 'track').replace(/[^a-zA-Z0-9\-_ ]/g, '').trim().replace(/\s+/g, '_').slice(0, 60);
+
+    if (data.bestProgressive) {
+        options.push({
+            label: 'MP3 Progressive', sub: 'Format terbaik · Download langsung',
+            badge: 'TERBAIK', icon: 'fa-file-audio',
+            url: `${API}/dlproxy?url=${encodeURIComponent(data.bestProgressive)}&filename=${encodeURIComponent(`SoundCloud-${sanitize(data.title)}.mp3`)}`,
+            delay: 0,
+        });
+    }
+    if (data.bestHls) {
+        options.push({
+            label: 'MP3 HLS', sub: 'Format streaming · Audio MPEG',
+            badge: 'HLS', icon: 'fa-wave-square',
+            url: `${API}/dlproxy?url=${encodeURIComponent(data.bestHls)}&filename=${encodeURIComponent(`SoundCloud-${sanitize(data.title)}-hls.mp3`)}`,
+            delay: 60,
+        });
+    }
+    if (data.bestHlsAac) {
+        options.push({
+            label: 'AAC 96k', sub: 'Format AAC · HLS stream',
+            badge: 'AAC', icon: 'fa-music',
+            url: `${API}/dlproxy?url=${encodeURIComponent(data.bestHlsAac)}&filename=${encodeURIComponent(`SoundCloud-${sanitize(data.title)}-aac.m4a`)}`,
+            delay: 120,
+        });
+    }
+
+    const optList = $('dl-options-list');
+    optList.innerHTML = '';
+
+    if (!options.length) {
+        const empty = document.createElement('div');
+        empty.className = 'empty-state';
+        empty.innerHTML = `<i class="fas fa-circle-exclamation"></i><p>Tidak ada format tersedia untuk track ini.</p>`;
+        optList.appendChild(empty);
+        return;
+    }
+
+    options.forEach(o => {
+        const optCard = document.createElement('div');
+        optCard.className = 'dl-option-card';
+        optCard.style.animationDelay = `${o.delay}ms`;
+        optCard.innerHTML = `
+            <div class="dl-option-top">
+                <div class="dl-format-icon"><i class="fas ${o.icon}"></i></div>
+                <div class="dl-option-info">
+                    <div class="dl-option-label">${esc(o.label)} <span class="dl-option-badge">${esc(o.badge)}</span></div>
+                    <div class="dl-option-sub">${esc(o.sub)}</div>
+                </div>
+            </div>
+            <a class="dl-btn" href="${esc(o.url)}" target="_blank">
+                <i class="fas fa-download"></i> Unduh
+            </a>`;
+        optList.appendChild(optCard);
+    });
+};
+
+document.addEventListener('DOMContentLoaded', () => {
+    $('year').textContent = new Date().getFullYear();
+
+    const sinput = $('search-input');
+    $('search-btn').addEventListener('click', () => doSearch(sinput.value));
+    sinput.addEventListener('keypress', e => { if (e.key === 'Enter') doSearch(sinput.value); });
+
+    const uinput = $('url-input');
+    $('url-btn').addEventListener('click', () => doDownloadUrl(uinput.value));
+    uinput.addEventListener('keypress', e => { if (e.key === 'Enter') doDownloadUrl(uinput.value); });
+    uinput.addEventListener('paste', () => {
+        setTimeout(() => {
+            const val = uinput.value.trim();
+            if (val && /soundcloud\.com\/.+/.test(val)) doDownloadUrl(val);
+        }, 50);
+    });
+
+    $('logo-home').addEventListener('click', () => showPage('home'));
+    $('results-home-btn').addEventListener('click', () => showPage('home'));
+    $('dl-back-btn').addEventListener('click', () => {
+        if (_searchResults.length) showPage('results');
+        else showPage('home');
+    });
+});
+
+</script>
+</body>
+</html>
